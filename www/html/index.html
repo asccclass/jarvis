@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -21,322 +22,418 @@
             --glass-border: rgba(255, 255, 255, 0.2);
         }
 
-        body, html {
-            margin: 0; padding: 0; height: 100%; overflow: hidden;
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: #000b1a;
             /* 建議替換為您提供的背景圖 */
             background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; background-position: center;
+            background-size: cover;
+            background-position: center;
         }
 
         body::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 10, 20, 0.6); z-index: -1;
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 20, 0.6);
+            z-index: -1;
         }
 
         .container {
-            width: 100%; height: 100%; display: flex; flex-direction: column;
-            padding: 2px; box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 2px;
+            box-sizing: border-box;
         }
 
         /* 頂部對話流 - 參考圖片的卡片堆疊感 */
         .output-panel {
-            flex: 1; overflow-y: auto; padding: 15px;
-            display: flex; flex-direction: column; gap: 12px;
-            padding-bottom: 160px; /* 預留給底欄空間 */
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 160px;
+            /* 預留給底欄空間 */
         }
 
         .msg-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1.5px solid var(--glass-border);
-            border-radius: 18px; padding: 15px;
+            border-radius: 18px;
+            padding: 15px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            color: white; line-height: 1.5;
+            color: white;
+            line-height: 1.5;
         }
-	/* 訊息消失動畫 */
-       .fade-out {
-          opacity: 0;
-          transform: translateY(-20px);
-          transition: all 0.5s ease;
-       }
+
+        /* 訊息消失動畫 */
+        .fade-out {
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s ease;
+        }
 
         /* 輸入預覽區 (導航列上方) */
         .preview-box {
-            position: fixed; bottom: 85px; left: 10px; right: 10px;
+            position: fixed;
+            bottom: 85px;
+            left: 10px;
+            right: 10px;
             background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-radius: 20px; border: 1px solid var(--glass-border);
-            padding: 12px; display: none; align-items: center; gap: 10px;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.5); z-index: 101;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 101;
         }
 
         #editable-input {
-            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
-            border-radius: 10px; padding: 10px; color: white; font-size: 1rem;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-size: 1rem;
         }
 
         .action-btn {
-            border: none; border-radius: 10px; padding: 10px 15px; 
-            font-weight: bold; cursor: pointer; font-size: 0.9rem;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
         }
 
-        #send-btn { background: var(--jarvis-blue); color: black; }
-        #cancel-btn { background: rgba(255, 75, 75, 0.2); color: #ff4b4b; border: 1px solid #ff4b4b; }
+        #send-btn {
+            background: var(--jarvis-blue);
+            color: black;
+        }
+
+        #cancel-btn {
+            background: rgba(255, 75, 75, 0.2);
+            color: #ff4b4b;
+            border: 1px solid #ff4b4b;
+        }
 
         /* 底部導航列 */
         .nav-bar {
-            position: fixed; bottom: 5px; left: 5px; right: 5px; height: 75px;
+            position: fixed;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            height: 75px;
             background: var(--glass-bg);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border); border-radius: 25px;
-            display: flex; align-items: center; padding: 0 20px; gap: 15px; z-index: 100;
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 100;
         }
 
         #record-btn {
-            width: 55px; height: 55px; border-radius: 50%;
-            border: 2px solid var(--jarvis-blue);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 24px; transition: all 0.3s;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 10px;
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid var(--jarvis-blue);
+            background: #000b1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            transition: all 0.3s;
+            z-index: 105;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
 
-        #record-btn.online { border-color: var(--jarvis-online); box-shadow: 0 0 15px var(--jarvis-online); }
-        #record-btn.active { transform: scale(0.8); background: rgba(0, 210, 255, 0.2); }
-	/* 圖片訊息卡片樣式 */
+        #record-btn.online {
+            border-color: var(--jarvis-online);
+            box-shadow: 0 0 20px var(--jarvis-online);
+        }
+
+        #record-btn.active {
+            transform: translateX(-50%) scale(0.9);
+            background: rgba(0, 210, 255, 0.3);
+        }
+
+        /* 圖片訊息卡片樣式 */
         .msg-image {
-           max-width: 100%;
-           border-radius: 12px;
-           margin-top: 10px;
-           border: 1px solid var(--glass-border);
+            max-width: 100%;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px solid var(--glass-border);
         }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-   <div class="output-panel" id="chat-flow">
-        <div class="msg-card" style="border-left: 4px solid var(--jarvis-blue);">
-            System: J.I.I. 系統已就緒，請按下左下方按鈕開始語音，或直接點擊輸入。
+    <div class="container">
+        <div class="output-panel" id="chat-flow">
+            <div class="msg-card" style="border-left: 4px solid var(--jarvis-blue);">
+                System: J.I.I. 系統已就緒，請按下左下方按鈕開始語音，或直接點擊輸入。
+            </div>
         </div>
-   </div>
 
-   <div class="preview-box" id="preview-box">
-        <input type="text" id="editable-input" placeholder="說點什麼或在此手寫輸入...">
-        <button id="cancel-btn" class="action-btn">❌</button>
-        <button id="send-btn" class="action-btn">發送</button>
-   </div>
+        <div class="preview-box" id="preview-box">
+            <input type="text" id="editable-input" placeholder="說點什麼或在此手寫輸入...">
+            <button id="cancel-btn" class="action-btn" title="取消">❌</button>
+            <button id="send-btn" class="action-btn" title="發送"
+                style="display: flex; align-items: center; justify-content: center;">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+            </button>
+        </div>
 
-   <div class="nav-bar">
-      <div id="record-btn">🎙️</div>
-      <label for="file-input" style="cursor: pointer; font-size: 24px;">📷</label>
-      <input type="file" id="file-input" accept="image/*" style="display: none;">
+        <div class="nav-bar">
+            <!-- 左側圖示 -->
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <label for="file-input" style="cursor: pointer; font-size: 26px;">📷</label>
+                <input type="file" id="file-input" accept="image/*" style="display: none;">
+                <div id="clear-btn" style="font-size: 26px; cursor: pointer;" title="清除對話">🧹</div>
+            </div>
 
-      <div style="flex-grow: 1; color: white; font-size: 0.9rem;" id="status-label">Jii Online</div>
-      <div id="clear-btn" style="font-size: 24px; cursor: pointer; padding: 5px;" title="清除對話">🧹</div>
-      <div style="font-size: 24px; opacity: 0.6;">⚙️</div>
-   </div>
-</div>
+            <!-- 中心大按鈕 -->
+            <div id="record-btn">🎙️</div>
 
-<script>
-   const myName = "Jii 哥";
-   const socketUrl = 'wss://jarvis.justdrink.com.tw/webhook';
-   const VAPID_PUBLIC_KEY = 'BJIylsrpQo4-n-tUJY6dafgTplaJncAC2eZuvZ-JACVd4CnVetD39KABd8fBWOmHcf3moynlvGoMWeGnMmi_-XY';
-   const fileInput = document.getElementById('file-input');
-   const btn = document.getElementById('record-btn');
-   const previewBox = document.getElementById('preview-box');
-   const inputField = document.getElementById('editable-input');
-   const chatFlow = document.getElementById('chat-flow');
-   const statusLabel = document.getElementById('status-label');
-   let socket;
+            <!-- 右側資訊與圖示 -->
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div style="color: white; font-size: 0.9rem; text-align: right;" id="status-label">Jii Online</div>
+                <div style="font-size: 26px; opacity: 0.6; cursor: pointer;">⚙️</div>
+            </div>
+        </div>
+    </div>
 
-   async function subscribeToPush() {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: VAPID_PUBLIC_KEY
-    });
-    // 將此訂閱資訊發送給 Go 後端儲存至資料庫
-    await fetch('/subscribe', {
-        method: 'POST',
-        body: JSON.stringify(subscription),
-        headers: { 'Content-Type': 'application/json' }
-    });
-    console.log('✅ PCAI 推送通知訂閱成功');
-   }
+    <script>
+        const myName = "Jii 哥";
+        const socketUrl = 'wss://jarvis.justdrink.com.tw/webhook';
+        const VAPID_PUBLIC_KEY = 'BJIylsrpQo4-n-tUJY6dafgTplaJncAC2eZuvZ-JACVd4CnVetD39KABd8fBWOmHcf3moynlvGoMWeGnMmi_-XY';
+        const fileInput = document.getElementById('file-input');
+        const btn = document.getElementById('record-btn');
+        const previewBox = document.getElementById('preview-box');
+        const inputField = document.getElementById('editable-input');
+        const chatFlow = document.getElementById('chat-flow');
+        const statusLabel = document.getElementById('status-label');
+        let socket;
 
-   // --- 訊息 UI 處理 ---
-   function addMessageToUI(sender, text) {
-        const card = document.createElement('div');
-        card.className = 'msg-card';
-        card.style.borderLeft = sender === 'USER' ? '4px solid #fff' : '4px solid var(--jarvis-blue)';
-	if(sender == 'SYSTEM') {
-           const formattedMsg = marked.parse(text.message);
-           card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${text.user_id}]</div>${formattedMsg}`;
-	} else {
-           card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${sender}]</div>${text.replace(/\n/g, '<br>')}`;
-      }
-      chatFlow.appendChild(card);
-      chatFlow.scrollTop = chatFlow.scrollHeight;
-   }
-
-    // --- WebSocket 與 PWA 基礎邏輯 ---
-    function connectWS() {
-        socket = new WebSocket(socketUrl);
-        socket.onopen = () => {
-            btn.classList.add('online');
-            statusLabel.innerText = "Jii Online";
-        };
-        socket.onclose = () => {
-            btn.classList.remove('online');
-            statusLabel.innerText = "Reconnecting...";
-            setTimeout(connectWS, 2000);
-        };
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.channel === "pcai" && data.type === "response") {
-                let msg = JSON.parse(data.message);
-                if(msg.reply_to == myName) addMessageToUI('SYSTEM', msg);
-            }
-        };
-    }
-
-   fileInput.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(event) {
-         const base64Data = event.target.result;
-         // 1. 在 UI 顯示已上傳圖片
-         addMessageToUI('USER', `<img src="${base64Data}" class="msg-image"><br>分析這張圖片...`);
-         // 2. 封裝成 JSON 發送
-         if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-                type: "image_analysis",
-                data: base64Data, // 包含 data:image/png;base64,...
-                channel: "pcai",
-                user_id: "Jii 哥" // 使用您的識別碼
-            }));
-         }
-      };
-      reader.readAsDataURL(file);
-   });
-
-    // --- 語音辨識邏輯 ---
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'zh-TW';
-        recognition.interimResults = true;
-
-        btn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            btn.classList.add('active');
-            previewBox.style.display = 'flex';
-            inputField.value = '正在聆聽...';
-            recognition.start();
-        });
-
-        btn.addEventListener('touchend', () => {
-            btn.classList.remove('active');
-            recognition.stop();
-        });
-
-        recognition.onresult = (event) => {
-            let transcript = Array.from(event.results).map(r => r[0].transcript).join('');
-            inputField.value = transcript;
-        };
-    }
-
-    // --- 按鍵行為邏輯 ---
-   // 1. 快速取消
-   document.getElementById('cancel-btn').addEventListener('click', () => {
-       previewBox.style.display = 'none';
-       inputField.value = '';
-   });
-
-   // 封裝後的統一發送函式
-   function sendMessageToPCAI(content, type = "command") {
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        const payload = {
-            channel: "pcai",      // 指定頻道
-            type: type,           // 標記為指令或回應
-            message: content,     // 實際的文字內容
-            user_id: "Jii 哥",    // 使用者識別
-            timestamp: new Date().toISOString()
-        };
-	if (socket && socket.readyState === WebSocket.OPEN) {
-           socket.send(JSON.stringify(payload));
-           // 如果是使用者發出的，則在 UI 顯示
-           if (type === "command") {
-              addMessageToUI('USER', content);
-           }
-        } else {
-        // 斷線時，儲存到離線佇列
-           OfflineManager.save(payload);
-           addMessageToUI('SYSTEM', `[離線暫存] ${content}`);
+        async function subscribeToPush() {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: VAPID_PUBLIC_KEY
+            });
+            // 將此訂閱資訊發送給 Go 後端儲存至資料庫
+            await fetch('/subscribe', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            console.log('✅ PCAI 推送通知訂閱成功');
         }
-      }
-   }
 
-   // 2. 發送訊息 (並解決循環問題)
-   document.getElementById('send-btn').addEventListener('click', () => {
-      const text = inputField.value;
-      if (text && socket.readyState === WebSocket.OPEN) {
-         sendMessageToPCAI(text); // 使用封裝函式
-         previewBox.style.display = 'none';
-         inputField.value = '';
-      }
-   });
+        // --- 訊息 UI 處理 ---
+        function addMessageToUI(sender, text) {
+            const card = document.createElement('div');
+            card.className = 'msg-card';
+            card.style.borderLeft = sender === 'USER' ? '4px solid #fff' : '4px solid var(--jarvis-blue)';
+            if (sender == 'SYSTEM') {
+                const formattedMsg = marked.parse(text.message);
+                card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${text.user_id}]</div>${formattedMsg}`;
+            } else {
+                card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${sender}]</div>${text.replace(/\n/g, '<br>')}`;
+            }
+            chatFlow.appendChild(card);
+            chatFlow.scrollTop = chatFlow.scrollHeight;
+        }
 
-    // 3. 手寫/鍵盤輸入支援
-    // 即使不錄音，直接點擊按鍵列上方也能觸發輸入 (若需要可增加專屬按鈕)
-    connectWS();
-    // --- 監聽網路恢復狀態 ---
-   window.addEventListener('online', () => {
-      console.log('🌐 網路已恢復，準備補發訊息...');
-      if (socket && socket.readyState === WebSocket.OPEN) {
-         OfflineManager.processQueue(socket);
-      }
-   });
-   
-   // 綁定清除按鈕事件
-document.getElementById('clear-btn').addEventListener('click', async () => {
-    if (confirm("確定要清除所有對話紀錄與暫存嗎？")) {
-        // 1. 畫面清空動畫
-        const cards = document.querySelectorAll('.msg-card');
-        cards.forEach(card => card.classList.add('fade-out'));
-        
-        setTimeout(() => {
-            chatFlow.innerHTML = `
+        // --- WebSocket 與 PWA 基礎邏輯 ---
+        function connectWS() {
+            socket = new WebSocket(socketUrl);
+            socket.onopen = () => {
+                btn.classList.add('online');
+                statusLabel.innerText = "Jii Online";
+            };
+            socket.onclose = () => {
+                btn.classList.remove('online');
+                statusLabel.innerText = "Reconnecting...";
+                setTimeout(connectWS, 2000);
+            };
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.channel === "pcai" && data.type === "response") {
+                    let msg = JSON.parse(data.message);
+                    if (msg.reply_to == myName) addMessageToUI('SYSTEM', msg);
+                }
+            };
+        }
+
+        fileInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const base64Data = event.target.result;
+                // 1. 在 UI 顯示已上傳圖片
+                addMessageToUI('USER', `<img src="${base64Data}" class="msg-image"><br>分析這張圖片...`);
+                // 2. 封裝成 JSON 發送
+                if (socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        type: "image_analysis",
+                        data: base64Data, // 包含 data:image/png;base64,...
+                        channel: "pcai",
+                        user_id: "Jii 哥" // 使用您的識別碼
+                    }));
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // --- 語音辨識邏輯 ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-TW';
+            recognition.interimResults = true;
+
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                btn.classList.add('active');
+                previewBox.style.display = 'flex';
+                inputField.value = '正在聆聽...';
+                recognition.start();
+            });
+
+            btn.addEventListener('touchend', () => {
+                btn.classList.remove('active');
+                recognition.stop();
+            });
+
+            recognition.onresult = (event) => {
+                let transcript = Array.from(event.results).map(r => r[0].transcript).join('');
+                inputField.value = transcript;
+            };
+        }
+
+        // --- 按鍵行為邏輯 ---
+        // 1. 快速取消
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+            previewBox.style.display = 'none';
+            inputField.value = '';
+        });
+
+        // 封裝後的統一發送函式
+        function sendMessageToPCAI(content, type = "command") {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const payload = {
+                    channel: "pcai",      // 指定頻道
+                    type: type,           // 標記為指令或回應
+                    message: content,     // 實際的文字內容
+                    user_id: "Jii 哥",    // 使用者識別
+                    timestamp: new Date().toISOString()
+                };
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify(payload));
+                    // 如果是使用者發出的，則在 UI 顯示
+                    if (type === "command") {
+                        addMessageToUI('USER', content);
+                    }
+                } else {
+                    // 斷線時，儲存到離線佇列
+                    OfflineManager.save(payload);
+                    addMessageToUI('SYSTEM', `[離線暫存] ${content}`);
+                }
+            }
+        }
+
+        // 2. 發送訊息 (並解決循環問題)
+        document.getElementById('send-btn').addEventListener('click', () => {
+            const text = inputField.value;
+            if (text && socket.readyState === WebSocket.OPEN) {
+                sendMessageToPCAI(text); // 使用封裝函式
+                previewBox.style.display = 'none';
+                inputField.value = '';
+            }
+        });
+
+        // 3. 手寫/鍵盤輸入支援
+        // 即使不錄音，直接點擊按鍵列上方也能觸發輸入 (若需要可增加專屬按鈕)
+        connectWS();
+        // --- 監聽網路恢復狀態 ---
+        window.addEventListener('online', () => {
+            console.log('🌐 網路已恢復，準備補發訊息...');
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                OfflineManager.processQueue(socket);
+            }
+        });
+
+        // 綁定清除按鈕事件
+        document.getElementById('clear-btn').addEventListener('click', async () => {
+            if (confirm("確定要清除所有對話紀錄與暫存嗎？")) {
+                // 1. 畫面清空動畫
+                const cards = document.querySelectorAll('.msg-card');
+                cards.forEach(card => card.classList.add('fade-out'));
+
+                setTimeout(() => {
+                    chatFlow.innerHTML = `
                 <div class="msg-card" style="border-left: 4px solid var(--jarvis-blue);">
                     System: 紀錄已清除。J.I.I. 重新待命。
                 </div>`;
-        }, 500);
+                }, 500);
 
-        // 2. 清除離線暫存佇列 (IndexedDB)
-        await OfflineManager.clearQueue();
+                // 2. 清除離線暫存佇列 (IndexedDB)
+                await OfflineManager.clearQueue();
 
-        // 3. 通知後端清除 Session (透過封裝好的 WebSocket 訊息)
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-                channel: "pcai",
-                type: "command",
-                message: "/clear_session", // 自定義清除指令
-                user_id: "Jii 哥"
-            }));
-        }
-    }
-});
+                // 3. 通知後端清除 Session (透過封裝好的 WebSocket 訊息)
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({
+                        channel: "pcai",
+                        type: "command",
+                        message: "/clear_session", // 自定義清除指令
+                        user_id: "Jii 哥"
+                    }));
+                }
+            }
+        });
 
-// 擴充 OfflineManager 以支援清除功能
-OfflineManager.clearQueue = async function() {
-    const db = await this.init();
-    const tx = db.transaction(this.storeName, 'readwrite');
-    tx.objectStore(this.storeName).clear();
-    console.log('🧹 離線資料庫已清空');
-};
-</script>
+        // 擴充 OfflineManager 以支援清除功能
+        OfflineManager.clearQueue = async function () {
+            const db = await this.init();
+            const tx = db.transaction(this.storeName, 'readwrite');
+            tx.objectStore(this.storeName).clear();
+            console.log('🧹 離線資料庫已清空');
+        };
+    </script>
     <script src="/js/app.js"></script>
 </body>
+
 </html>
