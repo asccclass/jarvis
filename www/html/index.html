@@ -516,10 +516,34 @@
             }
         });
 
+        // --- 螢幕喚醒鎖 (保持螢幕常亮) ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Wake Lock 已釋放');
+                    });
+                    console.log('Wake Lock 已啟用，螢幕將保持常亮');
+                }
+            } catch (err) {
+                console.warn(`Wake Lock 錯誤: ${err.name}, ${err.message}`);
+            }
+        }
+
+        // 當頁面切換回前景時，重新請求 Wake Lock
+        document.addEventListener('visibilitychange', () => {
+            if (wakeLock !== null && document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+
         // 3. 手寫/鍵盤輸入支援
         // 即使不錄音，直接點擊按鍵列上方也能觸發輸入 (若需要可增加專屬按鈕)
         function initApp() {
             connectWS();
+            requestWakeLock();
         }
 
         // 顯示姓名輸入彈跳視窗
