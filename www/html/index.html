@@ -103,6 +103,23 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             color: white;
             line-height: 1.5;
+            width: fit-content;
+            max-width: 85%;
+            word-break: break-word;
+        }
+
+        .msg-card.user {
+            align-self: flex-end;
+            border-right: 4px solid var(--jarvis-online);
+            border-left: none !important;
+            border-bottom-right-radius: 4px;
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .msg-card.system {
+            align-self: flex-start;
+            border-left: 4px solid var(--jarvis-blue);
+            border-bottom-left-radius: 4px;
         }
 
         /* 訊息消失動畫 */
@@ -231,7 +248,7 @@
         </div>
 
         <div class="output-panel" id="chat-flow">
-            <div class="msg-card" style="border-left: 4px solid var(--jarvis-blue);">
+            <div class="msg-card system" style="border-left: 4px solid var(--jarvis-blue);">
                 System: J.I.I. 系統已就緒，請按下左下方按鈕開始語音，或直接點擊輸入。
             </div>
         </div>
@@ -342,12 +359,16 @@
         function addMessageToUI(sender, text) {
             const card = document.createElement('div');
             card.className = 'msg-card';
-            card.style.borderLeft = sender === 'USER' ? '4px solid #fff' : '4px solid var(--jarvis-blue)';
+
             if (sender == 'SYSTEM') {
+                card.classList.add('system');
+                card.style.borderLeft = '4px solid var(--jarvis-blue)';
                 const formattedMsg = marked.parse(text.message);
                 card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${text.user_id}]</div>${formattedMsg}`;
             } else {
-                card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${sender}]</div>${text.replace(/\n/g, '<br>')}`;
+                card.classList.add('user');
+                card.style.borderRight = '4px solid var(--jarvis-online)';
+                card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px; text-align: right;">[${myName}]</div><div>${text.replace(/\n/g, '<br>')}</div>`;
             }
             chatFlow.appendChild(card);
             chatFlow.scrollTop = chatFlow.scrollHeight;
@@ -506,7 +527,7 @@
 
                 setTimeout(() => {
                     chatFlow.innerHTML = `
-                <div class="msg-card" style="border-left: 4px solid var(--jarvis-blue);">
+                <div class="msg-card system" style="border-left: 4px solid var(--jarvis-blue);">
                     System: 紀錄已清除。J.I.I. 重新待命。
                 </div>`;
                 }, 500);
