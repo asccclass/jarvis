@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Jarvis">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <title>J.A.R.V.I.S. Voice Console</title>
+    <style>
+        :root {
+            --jarvis-blue: #00d2ff;
+            --jarvis-glow: rgba(0, 210, 255, 0.4);
+	    --jarvis-glow-green: rgba(57, 255, 20, 0.4);
+	    --jarvis-online: #39ff14; /* 高亮綠色 */
+            --glass-bg: rgba(255, 255, 255, 0.12);
+            --glass-border: rgba(255, 255, 255, 0.25);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000b1a; /* 極深藍背景 */
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 背景裝飾：模擬 Jarvis 掃描線 */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2px; /* 依照需求：對話框距離邊界僅留 2px */
+            box-sizing: border-box;
+            z-index: 5;
+        }
+
+        /* --- J.A.R.V.I.S. 純 CSS 圓環按鈕 --- */
+        .jarvis-btn-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #record-btn {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 外部旋轉虛線環 */
+        .ring-outer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed var(--jarvis-blue);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: rotate-cw 100s linear infinite;
+        }
+
+        /* 中間分段環 (使用 conic-gradient 模擬) */
+        .ring-middle {
+            position: absolute;
+            width: 85%;
+            height: 85%;
+            border-radius: 50%;
+            border: 4px double var(--jarvis-blue);
+            mask-image: radial-gradient(transparent 65%, black 66%);
+            -webkit-mask-image: radial-gradient(transparent 65%, black 66%);
+            opacity: 0.8;
+        }
+
+        /* 核心文字與光效 */
+	/* 當按鈕具備 online class 時的顏色切換 */
+        #record-btn.online .ring-outer {
+            border-color: var(--jarvis-online);
+        }
+
+        #record-btn.online .ring-middle {
+            border-color: var(--jarvis-online);
+        }
+
+        #record-btn.online .btn-core {
+            color: var(--jarvis-online);
+            border-color: var(--jarvis-online);
+            text-shadow: 0 0 15px var(--jarvis-online);
+            background: radial-gradient(circle, var(--jarvis-glow-green) 0%, transparent 70%);
+        }
+
+        /* 錄音中且在連線狀態的特殊效果 */
+        #record-btn.online.active .btn-core {
+            box-shadow: inset 0 0 30px var(--jarvis-online);
+            background: radial-gradient(circle, var(--jarvis-online) 0%, transparent 80%);
+        }
+
+        .btn-core {
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, var(--jarvis-glow) 0%, transparent 70%);
+            border: 2px solid var(--jarvis-blue);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--jarvis-blue);
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--jarvis-blue);
+            transition: all 0.3s ease;
+        }
+
+        /* 錄音中動畫狀態 */
+        #record-btn.active .btn-core {
+            transform: scale(0.9);
+            box-shadow: inset 0 0 30px var(--jarvis-blue);
+            background: radial-gradient(circle, var(--jarvis-blue) 0%, transparent 80%);
+            color: #fff;
+        }
+
+        #record-btn.active .ring-outer {
+            animation: rotate-cw 2s linear infinite;
+            opacity: 1;
+        }
+
+        /* --- 2px 邊界玻璃對話框 --- */
+        .output-panel {
+            width: 100%; /* 填滿 container 的寬度 */
+            flex: 0 0 35%; /* 固定高度比例 */
+            padding: 20px;
+            box-sizing: border-box;
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            overflow-y: auto;
+            margin-bottom: 2px; /* 底部同樣留 2px */
+        }
+
+        #text-display {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .placeholder { color: rgba(255,255,255,0.3); font-style: italic; }
+
+        @keyframes rotate-cw {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="jarvis-btn-container">
+        <div id="record-btn">
+            <div class="ring-outer"></div>
+            <div class="ring-middle"></div>
+            <div class="btn-core">J.A.R.V.I.S.</div>
+        </div>
+    </div>
+    
+    <div class="output-panel">
+        <div id="text-display"><span class="placeholder">System ready. Awaiting command...</span></div>
+    </div>
+</div>
+
+<script>
+   if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/js/sw.js')
+            .then(reg => console.log('PWA Service Worker 註冊成功'))
+            .catch(err => console.log('註冊失敗:', err));
+      });
+   }
+
+   // 1. PWA Service Worker 註冊修正
+// 修正點：確保路徑指向根目錄 '/' 以避免 404，並讓 SW 擁有完整作用域
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/js/sw.js') 
+            .then(reg => console.log('✅ J.A.R.V.I.S. PWA 離線支援已啟動'))
+            .catch(err => console.error('❌ Service Worker 註冊失敗:', err));
+    });
+}
+
+// 2. WebSocket 連線與斷線重連邏輯
+let socket;
+// 請確保 Nginx 已配置 Upgrade 標頭轉發至 8080 埠口
+const socketUrl = 'wss://jarvis.justdrink.com.tw/webhook';
+const btn = document.getElementById('record-btn');
+const display = document.getElementById('text-display');
+// const label = document.getElementById('label');
+
+function connectWS() {
+    socket = new WebSocket(socketUrl);
+    socket.onopen = () => {
+        console.log("✅ [WebSocket] 中樞連線成功");
+        btn.classList.add('online');
+        // label.innerText = "Online";
+    };
+    // 接收伺服器回傳的內容（例如來自 PCAI 的處理結果）
+   socket.onmessage = (event) => {
+      try {
+         const data = JSON.parse(event.data);
+         if (data.channel === "pcai") {
+            let msg = JSON.parse(data.message);
+            const formattedMsg = marked.parse(msg.message);
+            // 1. 顯示訊息到玻璃對話框
+            const isAI = data.type === "response";
+            const messageHtml = `
+               <div style="margin-top:10px; border-left: 2px solid ${isAI ? '#00f2fe' : '#fff'}; padding-left: 10px;">
+                  <div style="font-size: 0.8rem; opacity: 0.5;">
+		     ${isAI ? '[SYSTEM]' : '[USER]'} - ${isAI ? data.channel : data.user_id }
+                  </div>
+                  <span>${formattedMsg}</span>
+               </div>`;
+            
+            display.innerHTML += messageHtml;
+            scrollPanelToBottom();
+
+            // 2. 核心防循環邏輯：
+            // 如果這條訊息是 AI 回傳的結果 (response)，我們就此停止，不進行任何後續處理。
+            if (isAI) return; 
+
+            // 如果是使用者的指令 (command)，且你原本有自動觸發邏輯，才在這裡執行。
+        }
+   } catch (e) {
+      console.error("解析錯誤", e);
+   }
+};
+
+    socket.onclose = (e) => {
+        console.warn("⚠️ [WebSocket] 連線中斷，2秒後重試...");
+        // label.innerText = "Reconnecting";
+        // 增加：移除綠色，恢復為預設藍色 (或灰色)
+        btn.classList.remove('online');
+        // 實作斷線重連功能
+        setTimeout(connectWS, 2000);
+    };
+
+    socket.onerror = (err) => {
+        console.error("❌ [WebSocket] 握手失敗或通訊錯誤");
+        socket.close();
+    };
+}
+
+// 初始化 WebSocket 連線
+connectWS();
+
+// 3. 語音辨識與發送邏輯
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'zh-TW';
+    recognition.interimResults = true;
+    recognition.continuous = false; // 放開按鈕即結束辨識並發送
+
+    let finalTranscript = '';
+
+    const startRecording = (e) => {
+        e.preventDefault();
+        if (socket.readyState !== WebSocket.OPEN) {
+            display.innerHTML = '<div style="color: #ff4b4b;">[ERROR]: 中樞尚未連線，無法執行指令。</div>';
+            return;
+        }
+        btn.classList.add('active');
+        finalTranscript = '';
+        display.innerHTML = '<div style="color: var(--jarvis-blue); opacity: 0.8;">[USER]: 正在聆聽...</div>';
+        recognition.start();
+    };
+
+    const stopRecording = () => {
+        btn.classList.remove('active');
+        recognition.stop();
+    };
+
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+                finalTranscript += event.results[i][0].transcript;
+            } else {
+                interimTranscript += event.results[i][0].transcript;
+            }
+        }
+        display.innerHTML = `<div style="color: var(--jarvis-blue);">[USER]: ${finalTranscript}<span style="opacity:0.5">${interimTranscript}</span></div>`;
+    };
+
+    recognition.onend = () => {
+        if (finalTranscript.trim() && socket.readyState === WebSocket.OPEN) {
+            // 透過 WebSocket 發送文字到 Go 後端
+            socket.send(finalTranscript);
+        }
+    };
+
+    // 觸控與滑鼠事件綁定
+    btn.addEventListener('touchstart', startRecording);
+    btn.addEventListener('touchend', stopRecording);
+    btn.addEventListener('mousedown', startRecording);
+    btn.addEventListener('mouseup', stopRecording);
+}
+
+function scrollPanelToBottom() {
+    const panel = document.querySelector('.output-panel');
+    panel.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
