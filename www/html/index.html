@@ -283,18 +283,27 @@
         </div>
     </div>
 
+    <!-- 姓名輸入對話框 (PWA 專用) -->
+    <div id="name-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 11, 26, 0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+        <div
+            style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 210, 255, 0.3);">
+            <div
+                style="width: 80px; height: 80px; margin: 0 auto 15px auto; border-radius: 50%; border: 2px solid var(--jarvis-blue); overflow: hidden;">
+                <img src="/images/jii.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Jii">
+            </div>
+            <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.5rem;">J.I.I. 系統登入</h2>
+            <p style="color: #aaa; margin: 0 0 20px 0; font-size: 0.9rem;">請輸入您的稱呼以開始對話</p>
+            <input type="text" id="overlay-name-input" placeholder="例如：Jii 哥"
+                style="width: 100%; padding: 15px; box-sizing: border-box; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.5); background: rgba(0, 0, 0, 0.6); color: white; margin-bottom: 20px; font-size: 1rem; text-align: center; outline: none;">
+            <button id="overlay-submit-btn"
+                style="background: var(--jarvis-blue); color: #000b1a; border: none; padding: 15px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);">進入系統</button>
+        </div>
+    </div>
+
     <script>
         // --- 取得或設定使用者名稱 ---
         let myName = localStorage.getItem('jarvis_user_name');
-        if (!myName) {
-            myName = prompt("請輸入您的姓名：", "");
-            if (!myName || myName.trim() === "") {
-                myName = "Guest_" + Math.floor(Math.random() * 10000); // 避免空名字
-            } else {
-                myName = myName.trim();
-            }
-            localStorage.setItem('jarvis_user_name', myName);
-        }
         const socketUrl = 'wss://jarvis.justdrink.com.tw/webhook';
         const fileInput = document.getElementById('file-input');
         const btn = document.getElementById('record-btn');
@@ -509,7 +518,38 @@
 
         // 3. 手寫/鍵盤輸入支援
         // 即使不錄音，直接點擊按鍵列上方也能觸發輸入 (若需要可增加專屬按鈕)
-        connectWS();
+        function initApp() {
+            connectWS();
+        }
+
+        // 顯示姓名輸入彈跳視窗
+        if (!myName) {
+            const nameOverlay = document.getElementById('name-overlay');
+            const overlayNameInput = document.getElementById('overlay-name-input');
+            const overlaySubmitBtn = document.getElementById('overlay-submit-btn');
+
+            nameOverlay.style.display = 'flex';
+
+            overlaySubmitBtn.addEventListener('click', () => {
+                const val = overlayNameInput.value.trim();
+                if (val) {
+                    myName = val;
+                    localStorage.setItem('jarvis_user_name', myName);
+                    nameOverlay.style.display = 'none';
+                    initApp(); // 開始連線
+                } else {
+                    alert('請輸入有效的姓名！');
+                }
+            });
+
+            overlayNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    overlaySubmitBtn.click();
+                }
+            });
+        } else {
+            initApp();
+        }
         // --- 監聽網路恢復狀態 ---
         window.addEventListener('online', () => {
             console.log('🌐 網路已恢復，準備補發訊息...');
