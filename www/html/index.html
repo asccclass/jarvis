@@ -290,7 +290,7 @@
             style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 210, 255, 0.3);">
             <div
                 style="width: 80px; height: 80px; margin: 0 auto 15px auto; border-radius: 50%; border: 2px solid var(--jarvis-blue); overflow: hidden;">
-                <img src="/images/jii.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Jii">
+                <video src="/images/smile.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
             </div>
             <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.5rem;">J.I.I. 系統登入</h2>
             <p style="color: #aaa; margin: 0 0 20px 0; font-size: 0.9rem;">請輸入您的稱呼以開始對話</p>
@@ -343,8 +343,8 @@
             }
         }
 
-        // 預設載入靜態圖片
-        setAvatarDisplay('/images/jii.png', 'image');
+        // 預設載入影片動態頭像
+        setAvatarDisplay('/images/smile.mp4', 'video');
         // 若要切換為串流/動態影片，後續可以隨時呼叫：
         // setAvatarDisplay('/videos/jii_talking.mp4', 'video');
         // 或者處理 WebRTC 串流： setAvatarDisplay(mediaStream, 'stream');
