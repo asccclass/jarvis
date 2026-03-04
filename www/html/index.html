@@ -243,8 +243,8 @@
         <!-- 頂部虛擬人物 (圖片或影片串流) -->
         <div class="avatar-wrapper" id="jii-avatar-wrapper">
             <img id="jii-avatar-img" src="/images/jii.png" alt="Jii 哥" style="display: none;">
-            <!-- 自動播放、循環、靜音是影片作為背景頭像的標準配置 -->
-            <video id="jii-avatar-video" autoplay loop muted playsinline style="display: none;"></video>
+            <!-- 自動播放、靜音是影片作為背景頭像的標準配置 -->
+            <video id="jii-avatar-video" autoplay muted playsinline style="display: none;"></video>
         </div>
 
         <div class="output-panel" id="chat-flow">
@@ -290,7 +290,7 @@
             style="background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; text-align: center; width: 80%; max-width: 320px; box-shadow: 0 10px 40px rgba(0, 210, 255, 0.3);">
             <div
                 style="width: 80px; height: 80px; margin: 0 auto 15px auto; border-radius: 50%; border: 2px solid var(--jarvis-blue); overflow: hidden;">
-                <video src="/images/smile.mp4" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                <img src="/images/jii.png" style="width: 100%; height: 100%; object-fit: cover;" alt="Jii">
             </div>
             <h2 style="color: white; margin: 0 0 10px 0; font-size: 1.5rem;">J.I.I. 系統登入</h2>
             <p style="color: #aaa; margin: 0 0 20px 0; font-size: 0.9rem;">請輸入您的稱呼以開始對話</p>
@@ -343,8 +343,24 @@
             }
         }
 
-        // 預設載入影片動態頭像
-        setAvatarDisplay('/images/smile.mp4', 'video');
+        // 預設載入靜態圖片
+        setAvatarDisplay('/images/jii.png', 'image');
+
+        // --- 隨機影片播放邏輯 ---
+        const videoList = ['/images/smile.mp4', '/images/smile01.mp4'];
+
+        function playRandomVideo() {
+            const randomVideo = videoList[Math.floor(Math.random() * videoList.length)];
+            setAvatarDisplay(randomVideo, 'video');
+        }
+
+        // 監聽影片播放結束事件，恢復為圖片
+        avatarVideo.addEventListener('ended', () => {
+            setAvatarDisplay('/images/jii.png', 'image');
+        });
+
+        // 每隔 5 分鐘 (300000 毫秒) 隨機播放一次影片
+        setInterval(playRandomVideo, 5 * 60 * 1000);
         // 若要切換為串流/動態影片，後續可以隨時呼叫：
         // setAvatarDisplay('/videos/jii_talking.mp4', 'video');
         // 或者處理 WebRTC 串流： setAvatarDisplay(mediaStream, 'stream');
