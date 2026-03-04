@@ -27,6 +27,7 @@ run: docker
 	-v /etc/ssl/certs:/etc/ssl/certs \
 	-v /etc/pki/ca-trust/extracted/pem:/etc/pki/ca-trust/extracted/pem \
 	-v /etc/pki/ca-trust/extracted/openssl:/etc/pki/ca-trust/extracted/openssl \
+	-v ${CURDIR}data:/app/data  \
 	-v ${CURDIR}www:/app/www  \
 	-v ${CURDIR}envfile:/app/envfile  \
 	-p ${PORT}:80 \
