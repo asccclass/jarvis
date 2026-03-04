@@ -433,7 +433,7 @@
                         type: "image_analysis",
                         data: base64Data, // 包含 data:image/png;base64,...
                         channel: "pcai",
-                        user_id: "Jii 哥" // 使用您的識別碼
+                        user_id: myName // 使用您的識別碼
                     }));
                 }
             };
@@ -480,7 +480,7 @@
                     channel: "pcai",      // 指定頻道
                     type: type,           // 標記為指令或回應
                     message: content,     // 實際的文字內容
-                    user_id: "Jii 哥",    // 使用者識別
+                    user_id: myName,      // 使用者識別
                     timestamp: new Date().toISOString()
                 };
                 if (socket && socket.readyState === WebSocket.OPEN) {
@@ -541,7 +541,7 @@
                         channel: "pcai",
                         type: "command",
                         message: "/clear_session", // 自定義清除指令
-                        user_id: "Jii 哥"
+                        user_id: myName
                     }));
                 }
             }
