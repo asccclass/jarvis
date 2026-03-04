@@ -278,7 +278,7 @@
             <!-- 右側資訊與圖示 -->
             <div style="display: flex; gap: 15px; align-items: center;">
                 <div style="color: white; font-size: 0.9rem; text-align: right;" id="status-label">Jii Online</div>
-                <div style="font-size: 26px; opacity: 0.6; cursor: pointer;">⚙️</div>
+                <div id="settings-btn" style="font-size: 26px; opacity: 0.6; cursor: pointer;" title="設定名稱">⚙️</div>
             </div>
         </div>
     </div>
@@ -607,6 +607,25 @@
                         message: "/clear_session", // 自定義清除指令
                         user_id: myName
                     }));
+                }
+            }
+        });
+
+        // 綁定設定(齒輪)按鈕事件：修改使用者姓名
+        document.getElementById('settings-btn').addEventListener('click', () => {
+            const newName = prompt("請輸入您的新姓名：", myName);
+            if (newName && newName.trim() !== "") {
+                const oldName = myName;
+                myName = newName.trim();
+                localStorage.setItem('jarvis_user_name', myName);
+
+                // 在畫面上提示修改成功
+                addMessageToUI('SYSTEM', `[系統提示] 您已將姓名從「${oldName}」修改為「${myName}」。之後的對話將使用新姓名。`);
+
+                // 若已連線，可以重新連線以更新 socket 上的 user 參數，或直接通知後端
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    // 根據目前架構，可以直接關閉再重連讓 URL query 帶入新名字
+                    socket.close();
                 }
             }
         });
