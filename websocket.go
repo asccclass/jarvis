@@ -92,10 +92,16 @@ func webhookHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 			} else {
 				fmt.Println("收到:", string(message))
 				// 收到訊息後，封裝成 pcai 頻道並廣播
+
+				sender := incoming.User
+				if sender == "" {
+					sender = userID
+				}
+
 				hub.broadcast <- BroadcastMessage{
 					Channel: "pcai",
 					Content: string(message),
-					User:    "Jii 哥", // 帶上你的使用者識別
+					User:    sender,
 					Type:    incoming.Type,
 				}
 			}
