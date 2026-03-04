@@ -355,7 +355,8 @@
 
         // --- WebSocket 與 PWA 基礎邏輯 ---
         function connectWS() {
-            socket = new WebSocket(socketUrl);
+            const connectUrl = socketUrl + "?user=" + encodeURIComponent(myName);
+            socket = new WebSocket(connectUrl);
             socket.onopen = () => {
                 btn.classList.add('online');
                 statusLabel.innerText = "Jii Online";
