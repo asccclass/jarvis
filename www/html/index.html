@@ -448,17 +448,27 @@
         }
 
         /**
-         * 進入閒置模式：zoom-out 頭像至全螢幕，從根節點開始播放
+         * 進入閒置模式：zoom-out 頭像至全螢幕，從根節點或上次的節點開始播放
          */
         function enterIdleMode() {
             if (isIdleMode) return;
-            currentTreeRoot = getTreeByTimePeriod();
-            if (!currentTreeRoot || !currentTreeRoot.video) return;
+
+            const newTreeRoot = getTreeByTimePeriod();
+            if (!newTreeRoot || !newTreeRoot.video) return;
+
+            // 如果時段改變，或尚未設定，則重置狀態
+            if (currentTreeRoot !== newTreeRoot) {
+                currentTreeRoot = newTreeRoot;
+                currentNode = currentTreeRoot;
+            }
+            if (!currentNode) {
+                currentNode = currentTreeRoot;
+            }
 
             isIdleMode = true;
 
-            // 從根節點開始播放
-            playNode(currentTreeRoot);
+            // 播放此節點
+            playNode(currentNode);
             avatarWrapper.classList.add('fullscreen');
             console.log('🎬 進入閒置模式（樹狀播放）');
         }
@@ -477,30 +487,30 @@
 
             setAvatarDisplay(staticImage, 'image');
             avatarWrapper.classList.remove('fullscreen');
-            currentNode = null;
-            currentTreeRoot = null;
+
+            // 注意：不要清空 currentNode 與 currentTreeRoot，以便下次閒置接續播放
+
             console.log('🏠 離開閒置模式');
             resetIdleTimer();
         }
 
         /**
-         * 影片播完後前進到下一個節點
-         * - 有子節點 → 隨機挑一個子節點播放
-         * - 無子節點（葉節點）→ loop 回根節點重新開始
+         * 影片播完後前進到下一個節點狀態 (僅更新指標，下次閒置時才播放)
+         * - 有子節點 → 隨機挑一個子節點
+         * - 無子節點（葉節點）→ loop 回根節點
          */
         function advanceToNextNode() {
-            if (!currentNode || !isIdleMode) return;
+            if (!currentNode) return;
 
             if (currentNode.children && currentNode.children.length > 0) {
                 // 隨機挑選一個子節點
-                const nextNode = currentNode.children[
+                currentNode = currentNode.children[
                     Math.floor(Math.random() * currentNode.children.length)
                 ];
-                playNode(nextNode);
             } else {
                 // 葉節點 → loop 回根節點
-                console.log('🔄 葉節點播完，loop 回根節點');
-                playNode(currentTreeRoot);
+                console.log('🔄 葉節點播完，下次閒置將回到根節點');
+                currentNode = currentTreeRoot;
             }
         }
 
@@ -529,8 +539,9 @@
         // 監聽影片播放結束事件
         avatarVideo.addEventListener('ended', () => {
             if (isIdleMode) {
-                // 影片播完 → 依據樹狀結構前進至下個節點，或循環播放
+                // 影片播完 → 先推進到下層節點狀態，接著退出閒置模式
                 advanceToNextNode();
+                exitIdleMode();
             } else {
                 // 非閒置模式下的影片結束，恢復當下時段的預設圖片
                 setAvatarDisplay(getDefaultImage(), 'image');
