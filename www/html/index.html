@@ -71,7 +71,8 @@
             justify-content: center;
             align-items: center;
             background: rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
         }
 
         .avatar-wrapper img,
@@ -79,6 +80,21 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* 全螢幕閒置播放模式 */
+        .avatar-wrapper.fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            z-index: 9000;
+            background: #000;
         }
 
         /* 頂部對話流 - 參考圖片的卡片堆疊感 */
@@ -346,24 +362,124 @@
         // 預設載入靜態圖片
         setAvatarDisplay('/images/jii.png', 'image');
 
-        // --- 隨機影片播放邏輯 ---
-        const videoList = ['/images/smile.mp4', '/images/smile01.mp4'];
+        // ========================================
+        // === 閒置偵測 + 時段隨機影片播放系統 ===
+        // ========================================
 
-        function playRandomVideo() {
-            const randomVideo = videoList[Math.floor(Math.random() * videoList.length)];
-            setAvatarDisplay(randomVideo, 'video');
+        const avatarWrapper = document.getElementById('jii-avatar-wrapper');
+
+        // --- 時段影片陣列設定 ---
+        // 上午 (06:00 ~ 11:59)
+        const morningVideos = [
+            '/actions/readbooks.mp4'
+        ];
+        // 下午 (12:00 ~ 17:59)
+        const afternoonVideos = [
+            '/actions/readbooks.mp4'
+        ];
+        // 晚上 (18:00 ~ 05:59)
+        const eveningVideos = [
+            '/actions/readbooks.mp4'
+        ];
+
+        // --- 每支影片對應的靜態圖片（可自訂，預設為 jii.png）---
+        const videoToImage = {
+            '/actions/readbooks.mp4': '/images/jii.png'
+            // 範例：'/actions/cooking.mp4': '/images/cooking_done.png'
+        };
+
+        // --- 閒置逾時設定（毫秒）---
+        const IDLE_TIMEOUT = 3 * 60 * 1000; // 3 分鐘
+
+        let idleTimer = null;
+        let isIdleMode = false;
+        let currentIdleVideo = null;
+
+        /**
+         * 依目前時段取得對應影片陣列
+         */
+        function getVideosByTimePeriod() {
+            const hour = new Date().getHours();
+            if (hour >= 6 && hour < 12) {
+                return morningVideos;
+            } else if (hour >= 12 && hour < 18) {
+                return afternoonVideos;
+            } else {
+                return eveningVideos;
+            }
         }
 
-        // 監聽影片播放結束事件，恢復為圖片
-        avatarVideo.addEventListener('ended', () => {
-            setAvatarDisplay('/images/jii.png', 'image');
+        /**
+         * 進入閒置模式：zoom-out 頭像至全螢幕並播放影片
+         */
+        function enterIdleMode() {
+            if (isIdleMode) return;
+            const videos = getVideosByTimePeriod();
+            if (!videos || videos.length === 0) return;
+
+            isIdleMode = true;
+            currentIdleVideo = videos[Math.floor(Math.random() * videos.length)];
+
+            // 先設定影片來源，再觸發全螢幕動畫
+            setAvatarDisplay(currentIdleVideo, 'video');
+            avatarWrapper.classList.add('fullscreen');
+            console.log(`🎬 閒置模式：播放 ${currentIdleVideo}`);
+        }
+
+        /**
+         * 離開閒置模式：切回靜態圖片並 zoom-in 回小頭像
+         */
+        function exitIdleMode() {
+            if (!isIdleMode) return;
+            isIdleMode = false;
+
+            // 取得該影片對應的靜態圖片（預設 jii.png）
+            const staticImage = (currentIdleVideo && videoToImage[currentIdleVideo])
+                ? videoToImage[currentIdleVideo]
+                : '/images/jii.png';
+
+            setAvatarDisplay(staticImage, 'image');
+            avatarWrapper.classList.remove('fullscreen');
+            currentIdleVideo = null;
+            console.log('🏠 離開閒置模式');
+            resetIdleTimer();
+        }
+
+        /**
+         * 重設閒置計時器
+         */
+        function resetIdleTimer() {
+            if (idleTimer) clearTimeout(idleTimer);
+
+            // 若正在全螢幕播放中，使用者互動 → 離開閒置模式
+            if (isIdleMode) {
+                exitIdleMode();
+                return;
+            }
+
+            idleTimer = setTimeout(() => {
+                enterIdleMode();
+            }, IDLE_TIMEOUT);
+        }
+
+        // --- 監聽使用者活動事件以重設閒置計時器 ---
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+            document.addEventListener(evt, resetIdleTimer, { passive: true });
         });
 
-        // 每隔 5 分鐘 (300000 毫秒) 隨機播放一次影片
-        setInterval(playRandomVideo, 5 * 60 * 1000);
-        // 若要切換為串流/動態影片，後續可以隨時呼叫：
-        // setAvatarDisplay('/videos/jii_talking.mp4', 'video');
-        // 或者處理 WebRTC 串流： setAvatarDisplay(mediaStream, 'stream');
+        // 監聽影片播放結束事件
+        avatarVideo.addEventListener('ended', () => {
+            if (isIdleMode) {
+                // 播放完畢 → 顯示對應靜態圖片，zoom-in 回小頭像
+                exitIdleMode();
+            } else {
+                // 非閒置模式下的影片結束，恢復預設圖片
+                setAvatarDisplay('/images/jii.png', 'image');
+            }
+        });
+
+        // 啟動閒置計時器
+        resetIdleTimer();
 
         async function subscribeToPush() {
             const registration = await navigator.serviceWorker.ready;
