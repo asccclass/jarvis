@@ -318,8 +318,14 @@
     </div>
 
     <script>
-        // --- 取得或設定使用者名稱 ---
+        // --- 取得或設定使用者名稱與 UserID ---
         let myName = localStorage.getItem('jarvis_user_name');
+        // userID：固定唯一識別碼，第一次進入時自動產生 UUID 並永久儲存
+        let myUserID = localStorage.getItem('jarvis_user_id');
+        if (!myUserID) {
+            myUserID = 'uid_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+            localStorage.setItem('jarvis_user_id', myUserID);
+        }
         const socketUrl = 'wss://jarvis.justdrink.com.tw/webhook';
         const fileInput = document.getElementById('file-input');
         const btn = document.getElementById('record-btn');
@@ -550,7 +556,9 @@
                 card.classList.add('system');
                 card.style.borderLeft = '4px solid var(--jarvis-blue)';
                 const formattedMsg = marked.parse(text.message);
-                card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${text.user_id}]</div>${formattedMsg}`;
+                // 優先顯示 display_name，回退到 user_id
+                const senderLabel = text.display_name || text.user_id || 'System';
+                card.innerHTML = `<div style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 5px;">[${senderLabel}]</div>${formattedMsg}`;
             } else {
                 card.classList.add('user');
                 card.style.borderRight = '4px solid var(--jarvis-online)';
@@ -562,7 +570,8 @@
 
         // --- WebSocket 與 PWA 基礎邏輯 ---
         function connectWS() {
-            const connectUrl = socketUrl + "?user=" + encodeURIComponent(myName);
+            // 連線時傳 myUserID 讓 server 識別此 client，確保 reply_to 能正確比對
+            const connectUrl = socketUrl + "?user=" + encodeURIComponent(myUserID);
             socket = new WebSocket(connectUrl);
             socket.onopen = () => {
                 btn.classList.add('online');
@@ -591,10 +600,11 @@
                         }
 
                         // 收到的 response 訊息中的 reply_to 與 myName 一樣時才顯示，否則忽略廣播訊息
-                        if (replyTarget === myName) {
+                        if (replyTarget === myUserID) {
                             let displayObj = {
                                 message: (innerMsg && innerMsg.message) ? innerMsg.message : data.message,
-                                user_id: (innerMsg && innerMsg.user_id) ? innerMsg.user_id : (data.user_id || 'System')
+                                user_id: (innerMsg && innerMsg.user_id) ? innerMsg.user_id : (data.user_id || 'System'),
+                                display_name: (innerMsg && innerMsg.display_name) ? innerMsg.display_name : (data.display_name || '')
                             };
                             addMessageToUI('SYSTEM', displayObj);
                         }
@@ -619,7 +629,8 @@
                         type: "image_analysis",
                         data: base64Data, // 包含 data:image/png;base64,...
                         channel: "pcai",
-                        user_id: myName // 使用您的識別碼
+                        user_id: myUserID,      // 唯一識別碼
+                        display_name: myName   // 顯示名稱
                     }));
                 }
             };
@@ -663,10 +674,11 @@
         function sendMessageToPCAI(content, type = "command") {
             if (socket && socket.readyState === WebSocket.OPEN) {
                 const payload = {
-                    channel: "pcai",      // 指定頻道
-                    type: type,           // 標記為指令或回應
-                    message: content,     // 實際的文字內容
-                    user_id: myName,      // 使用者識別
+                    channel: "pcai",       // 指定頻道
+                    type: type,            // 標記為指令或回應
+                    message: content,      // 實際的文字內容
+                    user_id: myUserID,     // 唯一識別碼（固定不變）
+                    display_name: myName,  // 顯示名稱（可由使用者修改）
                     timestamp: new Date().toISOString()
                 };
                 if (socket && socket.readyState === WebSocket.OPEN) {
@@ -782,7 +794,8 @@
                         channel: "pcai",
                         type: "command",
                         message: "/clear_session", // 自定義清除指令
-                        user_id: myName
+                        user_id: myUserID,
+                        display_name: myName
                     }));
                 }
             }
