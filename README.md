@@ -10,6 +10,7 @@ Jarvis (J.I.I. PWA Console) is a Progressive Web Application (PWA) and Go-based 
 * **Speech-to-Text**: Built-in voice input using the Web Speech API (`SpeechRecognition`).
 * **Image Upload & Analysis**: Supports selecting and uploading images (Base64 encoded) for AI analysis.
 * **Web Push Notifications**: Server-side push notification support using `webpush-go` to alert users of completed tasks.
+* **Smart Idle Screen**: Avatar automatically zooms to fullscreen and plays time-contextual videos (morning/afternoon/evening) after 3 minutes of inactivity.
 * **Dockerized Deployment**: Includes a `Makefile` and `Dockerfile` for quick deployment.
 
 ## Tech Stack
