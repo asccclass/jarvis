@@ -363,29 +363,43 @@
         setAvatarDisplay('/images/jii.png', 'image');
 
         // ========================================
-        // === 閒置偵測 + 時段隨機影片播放系統 ===
+        // === 閒置偵測 + 樹狀影片播放系統 ===
         // ========================================
 
         const avatarWrapper = document.getElementById('jii-avatar-wrapper');
 
-        // --- 時段影片陣列設定 ---
-        // 上午 (06:00 ~ 11:59)
-        const morningVideos = [
-            '/actions/readbooks.mp4'
-        ];
-        // 下午 (12:00 ~ 17:59)
-        const afternoonVideos = [
-            '/actions/readbooks.mp4'
-        ];
-        // 晚上 (18:00 ~ 05:59)
-        const eveningVideos = [
-            '/actions/readbooks.mp4'
-        ];
+        // --- 樹狀播放清單設定 ---
+        // 每個節點: { video: '影片路徑', image: '結束靜態圖', children: [子節點...] }
+        // children 為空陣列 = 葉節點 → 播完自動 loop 回根節點
 
-        // --- 每支影片對應的靜態圖片（可自訂，預設為 jii.png）---
-        const videoToImage = {
-            '/actions/readbooks.mp4': '/images/readbooks.png'
-            // 範例：'/actions/cooking.mp4': '/images/cooking_done.png'
+        // 上午 (06:00 ~ 11:59)
+        const morningTree = {
+            video: '/actions/readbooks.mp4',
+            image: '/images/readbooks.png',
+            children: [
+                // 新增子節點範例：
+                // { video: '/actions/morning_stretch.mp4', image: '/images/jii.png', children: [] }
+            ]
+        };
+
+        // 下午 (12:00 ~ 17:59)
+        const afternoonTree = {
+            video: '/actions/readbooks.mp4',
+            image: '/images/readbooks.png',
+            children: [
+                // 新增子節點範例：
+                // { video: '/actions/afternoon_walk.mp4', image: '/images/jii.png', children: [] }
+            ]
+        };
+
+        // 晚上 (18:00 ~ 05:59)
+        const eveningTree = {
+            video: '/actions/readbooks.mp4',
+            image: '/images/readbooks.png',
+            children: [
+                // 新增子節點範例：
+                // { video: '/actions/evening_relax.mp4', image: '/images/jii.png', children: [] }
+            ]
         };
 
         // --- 閒置逾時設定（毫秒）---
@@ -393,37 +407,46 @@
 
         let idleTimer = null;
         let isIdleMode = false;
-        let currentIdleVideo = null;
+        let currentTreeRoot = null;   // 目前時段的播放樹根節點
+        let currentNode = null;       // 目前正在播放的節點
 
         /**
-         * 依目前時段取得對應影片陣列
+         * 依目前時段取得對應播放樹
          */
-        function getVideosByTimePeriod() {
+        function getTreeByTimePeriod() {
             const hour = new Date().getHours();
             if (hour >= 6 && hour < 12) {
-                return morningVideos;
+                return morningTree;
             } else if (hour >= 12 && hour < 18) {
-                return afternoonVideos;
+                return afternoonTree;
             } else {
-                return eveningVideos;
+                return eveningTree;
             }
         }
 
         /**
-         * 進入閒置模式：zoom-out 頭像至全螢幕並播放影片
+         * 播放指定節點的影片
+         */
+        function playNode(node) {
+            currentNode = node;
+            setAvatarDisplay(node.video, 'video');
+            console.log(`🎬 播放節點：${node.video}`);
+        }
+
+        /**
+         * 進入閒置模式：zoom-out 頭像至全螢幕，從根節點開始播放
          */
         function enterIdleMode() {
             if (isIdleMode) return;
-            const videos = getVideosByTimePeriod();
-            if (!videos || videos.length === 0) return;
+            currentTreeRoot = getTreeByTimePeriod();
+            if (!currentTreeRoot || !currentTreeRoot.video) return;
 
             isIdleMode = true;
-            currentIdleVideo = videos[Math.floor(Math.random() * videos.length)];
 
-            // 先設定影片來源，再觸發全螢幕動畫
-            setAvatarDisplay(currentIdleVideo, 'video');
+            // 從根節點開始播放
+            playNode(currentTreeRoot);
             avatarWrapper.classList.add('fullscreen');
-            console.log(`🎬 閒置模式：播放 ${currentIdleVideo}`);
+            console.log('🎬 進入閒置模式（樹狀播放）');
         }
 
         /**
@@ -433,16 +456,38 @@
             if (!isIdleMode) return;
             isIdleMode = false;
 
-            // 取得該影片對應的靜態圖片（預設 jii.png）
-            const staticImage = (currentIdleVideo && videoToImage[currentIdleVideo])
-                ? videoToImage[currentIdleVideo]
+            // 取得目前節點對應的靜態圖片（預設 jii.png）
+            const staticImage = (currentNode && currentNode.image)
+                ? currentNode.image
                 : '/images/jii.png';
 
             setAvatarDisplay(staticImage, 'image');
             avatarWrapper.classList.remove('fullscreen');
-            currentIdleVideo = null;
+            currentNode = null;
+            currentTreeRoot = null;
             console.log('🏠 離開閒置模式');
             resetIdleTimer();
+        }
+
+        /**
+         * 影片播完後前進到下一個節點
+         * - 有子節點 → 隨機挑一個子節點播放
+         * - 無子節點（葉節點）→ loop 回根節點重新開始
+         */
+        function advanceToNextNode() {
+            if (!currentNode || !isIdleMode) return;
+
+            if (currentNode.children && currentNode.children.length > 0) {
+                // 隨機挑選一個子節點
+                const nextNode = currentNode.children[
+                    Math.floor(Math.random() * currentNode.children.length)
+                ];
+                playNode(nextNode);
+            } else {
+                // 葉節點 → loop 回根節點
+                console.log('🔄 葉節點播完，loop 回根節點');
+                playNode(currentTreeRoot);
+            }
         }
 
         /**
@@ -470,8 +515,8 @@
         // 監聽影片播放結束事件
         avatarVideo.addEventListener('ended', () => {
             if (isIdleMode) {
-                // 播放完畢 → 顯示對應靜態圖片，zoom-in 回小頭像
-                exitIdleMode();
+                // 樹狀播放：前進到下一個節點
+                advanceToNextNode();
             } else {
                 // 非閒置模式下的影片結束，恢復預設圖片
                 setAvatarDisplay('/images/jii.png', 'image');
