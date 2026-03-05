@@ -3,3 +3,4 @@ envfile
 pubkey/*
 data/*
 www/html/0*.html
+*.exe

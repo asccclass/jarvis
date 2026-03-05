@@ -9,11 +9,25 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// GlobalName 儲存 AI 顯示名稱，於啟動時由 envfile 的 SystemName 初始化
+// 回覆 WebSocket 訊息時，display_name 欄位將填入此值
+var GlobalName string
+
 func main() {
 	if err := godotenv.Load("envfile"); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
+
+	// 初始化 AI 顯示名稱（display_name 回覆時使用）
+	GlobalName = os.Getenv("SystemName")
+	if GlobalName == "" {
+		GlobalName = os.Getenv("WEBSOCKET_USER_ID")
+	}
+	if GlobalName == "" {
+		GlobalName = "Jarvis"
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "80"

@@ -11,12 +11,13 @@ import (
 
 // BroadcastMessage 定義廣播的 JSON 格式
 type BroadcastMessage struct {
-	Channel   string `json:"channel"`
-	Content   string `json:"message"`
-	User      string `json:"user_id,omitempty"`
-	ImageData string `json:"data,omitempty"` // 存放 Base64 圖片數據
-	ReplyTo   string `json:"reply_to"`
-	Type      string `json:"type"` // "command" 或 "response"
+	Channel     string `json:"channel"`
+	Content     string `json:"message"`
+	UserID      string `json:"user_id,omitempty"`      // 固定不可變，由 WEBSOCKET_USER_ID 賦予
+	DisplayName string `json:"display_name,omitempty"` // 可變顯示名稱；接收時填發送者 ID，回覆時填 AI GlobalName
+	ImageData   string `json:"data,omitempty"`         // 存放 Base64 圖片數據
+	ReplyTo     string `json:"reply_to"`
+	Type        string `json:"type"` // "command" 或 "response"
 }
 
 // Client 包含 WebSocket 連線與使用者識別碼

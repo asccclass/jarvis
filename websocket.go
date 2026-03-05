@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -49,10 +50,14 @@ func webhookHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 取得連線的 User
-	userID := r.URL.Query().Get("user")
+	// 取得本機固定身分 userID（由環境變數 WEBSOCKET_USER_ID 賦予，不可變）
+	userID := os.Getenv("WEBSOCKET_USER_ID")
 	if userID == "" {
-		userID = "Unknown"
+		// fallback：從 URL query 取得，僅用於開發除錯
+		userID = r.URL.Query().Get("user")
+	}
+	if userID == "" {
+		userID = "unknown"
 	}
 
 	client := &Client{Conn: conn, UserID: userID}
@@ -85,26 +90,47 @@ func webhookHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 			}
 			var incoming BroadcastMessage
 			json.Unmarshal(message, &incoming)
+
+			// 取得發送者的顯示名稱（接收時語意：填入發送者的 display_name 或 user_id）
+			senderDisplay := incoming.DisplayName
+			if senderDisplay == "" {
+				senderDisplay = incoming.UserID
+			}
+
 			if incoming.Type == "image_analysis" {
-				fmt.Printf("📸 收到來自 %s 的圖片分析請求", incoming.User)
+				fmt.Printf("📸 收到來自 %s 的圖片分析請求", senderDisplay)
 				// 此處串接您的 Ollama 或其他多模態模型 (如 LLaVA)
 				// go analyzeImage(hub, incoming)
 			} else {
 				fmt.Println("收到:", string(message))
-				// 收到訊息後，封裝成 pcai 頻道並廣播
-
-				sender := incoming.User
-				if sender == "" {
-					sender = userID
-				}
 
 				hub.broadcast <- BroadcastMessage{
-					Channel: "pcai",
-					Content: string(message),
-					User:    sender,
-					Type:    incoming.Type,
+					Channel:     "pcai",
+					Content:     string(message),
+					UserID:      userID,        // 固定本機身分（env WEBSOCKET_USER_ID）
+					DisplayName: senderDisplay, // 接收時填入發送者的顯示名稱
+					Type:        incoming.Type,
 				}
 			}
 		}
 	}()
+}
+
+// Reply 封裝 AI 回覆訊息並廣播
+// - user_id：固定讀取 WEBSOCKET_USER_ID，代表本機（AI）的唯一身分
+// - display_name：填入 GlobalName（AI 的顯示名稱）
+func Reply(hub *Hub, replyTo string, content string, msgType string) {
+	userID := os.Getenv("WEBSOCKET_USER_ID")
+	if userID == "" {
+		userID = "jarvis"
+	}
+
+	hub.broadcast <- BroadcastMessage{
+		Channel:     "pcai",
+		Content:     content,
+		UserID:      userID,     // 固定本機身分
+		DisplayName: GlobalName, // 回覆時填 AI 名稱
+		ReplyTo:     replyTo,
+		Type:        msgType,
+	}
 }
