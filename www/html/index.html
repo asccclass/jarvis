@@ -365,9 +365,6 @@
             }
         }
 
-        // 預設載入靜態圖片
-        setAvatarDisplay('/images/jii.png', 'image');
-
         // ========================================
         // === 閒置偵測 + 樹狀影片播放系統 ===
         // ========================================
@@ -431,6 +428,17 @@
         }
 
         /**
+         * 依目前時段取得預設靜態圖片
+         */
+        function getDefaultImage() {
+            const tree = getTreeByTimePeriod();
+            return tree && tree.image ? tree.image : '/images/jii.png';
+        }
+
+        // 預設載入靜態圖片（依據當下時間）
+        setAvatarDisplay(getDefaultImage(), 'image');
+
+        /**
          * 播放指定節點的影片
          */
         function playNode(node) {
@@ -462,10 +470,10 @@
             if (!isIdleMode) return;
             isIdleMode = false;
 
-            // 取得目前節點對應的靜態圖片（預設 jii.png）
+            // 取得目前節點對應的靜態圖片，否則退回該時段預設圖片
             const staticImage = (currentNode && currentNode.image)
                 ? currentNode.image
-                : '/images/jii.png';
+                : getDefaultImage();
 
             setAvatarDisplay(staticImage, 'image');
             avatarWrapper.classList.remove('fullscreen');
@@ -521,11 +529,11 @@
         // 監聽影片播放結束事件
         avatarVideo.addEventListener('ended', () => {
             if (isIdleMode) {
-                // 影片播完 → zoom-out 回 avatar 視窗，顯示靜態圖片
-                exitIdleMode();
+                // 影片播完 → 依據樹狀結構前進至下個節點，或循環播放
+                advanceToNextNode();
             } else {
-                // 非閒置模式下的影片結束，恢復預設圖片
-                setAvatarDisplay('/images/jii.png', 'image');
+                // 非閒置模式下的影片結束，恢復當下時段的預設圖片
+                setAvatarDisplay(getDefaultImage(), 'image');
             }
         });
 
