@@ -1,18 +1,19 @@
 package main
 
-import(
-   "encoding/json"
+import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/SherClockHolmes/webpush-go"
 )
 
 // 這些金鑰請務必安全存放
-const (
-	vapidPublicKey  = "BJIylsrpQo4-n-tUJY6dafgTplaJncAC2eZuvZ-JACVd4CnVetD39KABd8fBWOmHcf3moynlvGoMWeGnMmi_-XY"
-	vapidPrivateKey = "FWEZ0rByEAQpRLIuKyt_xdbKFZDdMj3WoB6f70N6Df4"
+var (
+	vapidPublicKey  = os.Getenv("VAPIDKEY_PUBLIC")
+	vapidPrivateKey = os.Getenv("VAPIDKEY_PRIVATE")
 )
 
 // 儲存訂閱資訊 (實際專案建議存入資料庫)
@@ -41,10 +42,10 @@ func notifyHandler(w http.ResponseWriter, r *http.Request) {
 	message := "報告 Jii 哥，PCAI 已完成您的行事曆分析。"
 
 	resp, err := webpush.SendNotification([]byte(message), &sub, &webpush.Options{
-		Subscriber:       "mailto:justgps@gmail.com",
-		VAPIDPublicKey:   vapidPublicKey,
-		VAPIDPrivateKey:  vapidPrivateKey,
-		TTL:              30,
+		Subscriber:      "mailto:justgps@gmail.com",
+		VAPIDPublicKey:  vapidPublicKey,
+		VAPIDPrivateKey: vapidPrivateKey,
+		TTL:             30,
 	})
 	if err != nil {
 		log.Fatal(err)
