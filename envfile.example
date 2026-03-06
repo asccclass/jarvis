@@ -22,3 +22,6 @@ socketiologfile=logs/register.log
 ServerURL=https://jarvis.justdrink.com.tw/
 VAPIDKEY_PRIVATE=
 VAPIDKEY_PUBLIC=
+
+# WebSocket 認證 Token（若設定，客戶端必須帶上此 token 才能建立 WebSocket 連線）
+WS_AUTH_TOKEN=

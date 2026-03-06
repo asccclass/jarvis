@@ -44,6 +44,24 @@ var upgrader = websocket.Upgrader{
 }
 
 func webhookHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	// === Token 認證檢查 ===
+	expectedToken := os.Getenv("WS_AUTH_TOKEN")
+	if expectedToken != "" {
+		token := r.URL.Query().Get("token")
+		if token == "" {
+			// 備用：從 Authorization header 取得（格式 "Bearer <token>"）
+			authHeader := r.Header.Get("Authorization")
+			if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+				token = authHeader[7:]
+			}
+		}
+		if token != expectedToken {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			fmt.Printf("⛔ WebSocket 連線被拒：無效的 token（來源 IP: %s）\n", r.RemoteAddr)
+			return
+		}
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("⚠️ 升級失敗:", err)
