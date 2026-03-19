@@ -99,3 +99,16 @@ func (h *Hub) run() {
 		}
 	}
 }
+func (h *Hub) GetOnlineUsers() []string {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	usersMap := make(map[string]bool)
+	for client := range h.clients {
+		usersMap[client.UserID] = true
+	}
+	var users []string
+	for user := range usersMap {
+		users = append(users, user)
+	}
+	return users
+}
