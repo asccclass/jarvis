@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jarvis Direct Chat</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --primary-bg: #0f172a;
@@ -354,7 +355,8 @@
             info.innerText = sender + " • " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
             const content = document.createElement('div');
-            content.innerText = text;
+            // Check if text is a string before parsing
+            content.innerHTML = typeof text === 'string' ? marked.parse(text) : text;
             
             div.appendChild(info);
             div.appendChild(content);
