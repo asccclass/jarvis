@@ -63,7 +63,17 @@ func main() {
 	router.HandleFunc("/webhook", func(w http.ResponseWriter, r *http.Request) {
 		webhookHandler(hub, w, r)
 	})
+	router.HandleFunc("/online", func(w http.ResponseWriter, r *http.Request) {
+		onlineHandler(hub, w, r)
+	})
 	router.HandleFunc("/subscribe", subscribe)
 	server.Server.Handler = router // server.CheckCROS(router)  // 需要自行implement, overwrite 預設的
 	server.Start()
+}
+func onlineHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	users := hub.GetOnlineUsers()
+	w.Header().Set("Content-Type", "text/html")
+	for _, user := range users {
+		fmt.Fprintf(w, `<li class="user-item" hx-on:click="selectUser('%s')">%s <span class="status-dot"></span></li>`, user, user)
+	}
 }
