@@ -120,7 +120,7 @@ func webhookHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 				// 此處串接您的 Ollama 或其他多模態模型 (如 LLaVA)
 				// go analyzeImage(hub, incoming)
 			} else {
-				fmt.Println("收到:", string(message))
+				// fmt.Printf("收到來自 %s 的訊息", senderDisplay)
 				hub.broadcast <- incoming
 				/*
 					hub.broadcast <- BroadcastMessage{
