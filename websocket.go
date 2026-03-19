@@ -121,14 +121,16 @@ func webhookHandler(hub *Hub, w http.ResponseWriter, r *http.Request) {
 				// go analyzeImage(hub, incoming)
 			} else {
 				fmt.Println("收到:", string(message))
-
-				hub.broadcast <- BroadcastMessage{
-					Channel:     "pcai",
-					Content:     string(message),
-					UserID:      userID,        // 固定本機身分（env WEBSOCKET_USER_ID）
-					DisplayName: senderDisplay, // 接收時填入發送者的顯示名稱
-					Type:        incoming.Type,
-				}
+				hub.broadcast <- incoming
+				/*
+					hub.broadcast <- BroadcastMessage{
+						Channel:     "pcai",
+						Content:     string(message),
+						UserID:      userID,        // 固定本機身分（env WEBSOCKET_USER_ID）
+						DisplayName: senderDisplay, // 接收時填入發送者的顯示名稱
+						Type:        incoming.Type,
+					}
+				*/
 			}
 		}
 	}()
